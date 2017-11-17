@@ -40,7 +40,7 @@ const Pug = db.define('pugs', {
     type: Sequelize.ENUM('black', 'fawn')
   },
   toys: {
-    type: Sequelize.ARRAY(Sequelize.TEXT) // an array of text strings
+    type: Sequelize.ARRAY(Sequelize.TEXT) // an array of text strings (Postgres only)
   },
   adoptedStatus: {
     type: Sequelize.BOOLEAN
@@ -178,6 +178,7 @@ const Pug = db.define('pugs', {
     get () { // this defines the 'getter'
       // 'this' refers to the instance (same as an instance method)
       // in a 'getter', you should not refer to the names of the columns directly
+      // as this will recursively call the getter and result in a stack overflow,
       // instead, use the `this.getDataValue` method
       return this.getDataValue('name') + ' the pug'
       // this getter will automatically append ' the pug' to any name
@@ -311,16 +312,16 @@ TodoList.beforeDestroy((todoListInstance) => {
 })
 ```
 
-### Relations (aka Associations)
+### Associations
 [Docs](http://docs.sequelizejs.com/manual/tutorial/associations.html)
 
-Relations (also called "Associations") in Sequelize establish three things:
+Associations in Sequelize establish three things:
 
-1. For one-one or one-many relationships, it establishes a foreign key relationship between two tables (though a table could be related to itself). For many-many relationships, it establishes a join-table that contains pairs of foreign keys.
-2. It creates several special instance methods ("getAssociation" and "setAssociation") that an instance can use to search for the instances that they are related to
-3. It creates the ability to use "include" in queries to include data about related rows
+1. For one-one or one-many associations, it establishes a foreign key relationship between two tables (though a table could be related to itself). For many-many associations, it establishes a join-table that contains pairs of foreign keys.
+2. It creates several special instance methods (like "getAssociation", "setAssociation", and potentially others depending on the type of association) that an instance can use to search for the instances that they are related to
+3. It creates the ability to use "include" in queries to include data about related rows (known as "eager loading")
 
-##### Types of Relations
+##### Types of Associations
 
 It is possible to specify the following associations in Sequelize:
 
@@ -345,16 +346,16 @@ These relations can be combined to establish *one-one*, *one-many* and *many-man
 
 ##### One-One Relations
 
-A one-one relation is established by pairing a `belongsTo` and a `hasOne` relation (though the `hasOne` is often omitted).
+A one-one association is established by pairing a `belongsTo` and a `hasOne` association (though the `hasOne` is often omitted).
 
-Say we have two model tables, `Pug` and an `Owner`. We might relate them like so:
+Say we have two model tables, `Pug` and an `Owner`. We might associate them like so:
 
 ```javascript
 Pug.belongsTo(Owner)
 Owner.hasOne(Pug)
 ```
 
-This means that a pug belongs to an owner, and an owner has one (any only one) pug.
+This means that a pug belongs to an owner, and an owner has one (and only one) pug.
 
 By doing this, the following three things will happen/be available to use:
 
@@ -375,11 +376,11 @@ id | name | createdAt | updatedAt
 ```javascript
 pug.getOwner() // returns a promise for the pug's owner
 
-pug.setOwner(owner) // updates the pug's ownerId to be the id of the passed-in owner, and returns a promise for the updated pug
+pug.setOwner(owner instance or ID) // updates the pug's ownerId to be the id of the passed-in owner, and returns a promise for the updated pug
 
 owner.getPug() // returns a promise for the owner's pug
 
-owner.setPug(pug) // updates the passed-in pug's ownerId to be the id of the owner, and returns a promise for the updated pug
+owner.setPug(pug instance or ID) // updates the passed-in pug's ownerId to be the id of the owner, and returns a promise for the updated pug
 ```
 
 3. Sequelize will allow us to "include" the pug's owner, or the owner's pug in queries.
@@ -424,9 +425,9 @@ return Owner.findAll({
 })
 ```
 
-##### One-Many Relations
+##### One-Many Associations
 
-A one-many relation is established by pairing a `belongsTo` and a `hasMany` relation (though like `hasOne`, the `hasMany` is sometimes omitted).
+A one-many association is established by pairing a `belongsTo` and a `hasMany` relation (though like `hasOne`, the `belongsTo` is sometimes omitted).
 
 Given our Pug and Owner, we might allow an owner to have multiple pugs like so:
 
@@ -439,7 +440,7 @@ This means that a pug belongs to an owner, and an owner can have many pugs (also
 
 By doing this, the following three things will happen/be available to use:
 
-1. The Pug table will have a foreign key column, "ownerId", corresponding to a primary key in the Owner table. *Note: this is the same as a one-one relationship*.
+1. The Pug table will have a foreign key column, "ownerId", corresponding to a primary key in the Owner table. *Note: this is the same as a one-one association*.
 
 *Pugs* - includes an ownerId!
 ```
@@ -451,7 +452,7 @@ id | name | createdAt | updatedAt | ownerId
 id | name | createdAt | updatedAt
 ```
 
-2. Sequelize automatically creates two instance methods for pugs, "getOwner" and "setOwner". This is because we defined `Pug.belongsTo(Owner)`. Likewise, owners get two instance methods, "getPugs" and "setPugs" (because we defined `Owner.hasOne(Pug)`). *Note: the difference here from one-one is that the owner's methods are now pluralized, and return promises for arrays of pugs instead of just a single pug!*
+2. Sequelize automatically creates three instance methods for pugs, "getOwner", "setOwner", and "createOwner". This is because we defined `Pug.belongsTo(Owner)`. Likewise, owners get a bunch of new instance methods, "getPugs", "setPugs", "createPug", "addPug", "addPugs", "removePug", "removePugs", "hasPug", "hasPugs", and "countPugs" (because we defined `Owner.hasOne(Pug)`). *Note: the difference here from one-one is that the owner's methods are now pluralized, and return promises for arrays of pugs instead of just a single pug!*
 
 ```javascript
 pug.getOwner() // returns a promise for the pug's owner
@@ -509,9 +510,9 @@ return Owner.findAll({
 })
 ```
 
-##### Many-Many Relations
+##### Many-Many Associations
 
-One-One and One-Many relationships are very similar. Many-Many relationships are different! Instead of placing a foreign key in one table, they create a brand new "join" table where each row contains a foreign key for each entity in the relationship.
+One-One and One-Many associations are very similar. Many-Many associations are different! Instead of placing a foreign key in one table, they create a brand new "join" table where each row contains a foreign key for each entity in the relationship.
 
 For our example, let's introduce a new table, Friend:
 
@@ -551,7 +552,7 @@ const Friendship = db.model('friendship')
 
 You can use this model the same way you use any other Sequelize model (you can query it, create instances, etc).
 
-3. Sequelize automatically creates several instance methods for pugs and for friends. There's quite a few of them:
+3. Sequelize automatically creates several instance methods for pugs and for friends, the same ones as created by `hasMany` above:
 
 ```
 pug.getFriends() // returns a promise for the array of friends for that pug
@@ -604,7 +605,9 @@ The inverse also applies if we `Friend.findAll({include: [{model: Pug}]})`
 Finds a single instance that matches the search criteria (even if there are more than one that match the search criteria - it will return the first it finds)
 
 ```javascript
-Pug.findOne({name: 'Cody'})
+Pug.findOne({
+  where: {name: 'Cody'}
+})
 .then(foundPug => {
   console.log(foundPug)
 })
@@ -685,20 +688,25 @@ We often want to specify comparisons like "greater than", "less than" in our `wh
 
 In sequelize, we need to use special properties called "operators" to do this. Here are some of the most common. (Note: there are of course many more operators - there's no need to memorize all of them, but be sure to read through them so that you have an idea of what you can do!)
 
-* $gt: Greater than
-* $gte: Greater than or equal
-* $lt: Less than
-* $lte: Less than or equal
-* $ne: Not equal
-* $or: Use or logic for multiple properties
+Sequelize stores these operators on the `Sequelize.Op` module:
+
+const Op = Sequelize.Op
+
+* [Op.gt]: Greater than
+* [Op.gte]: Greater than or equal
+* [Op.lt]: Less than
+* [Op.lte]: Less than or equal
+* [Op.ne]: Not equal
+* [Op.or]: Use or logic for multiple properties
 
 
 ```javascript
-// $gt, $gte, $lt, $lte
+// gt, gte, lt, lte
 Pug.findAll({
   where: {
     age: {
-      $lte: 7 // SELECT * FROM pugs WHERE age <= 7
+      [Op.lte]: 7 // SELECT * FROM pugs WHERE age <= 7
+      // using square brackets for computed property name
     }
   }
 })
@@ -709,7 +717,7 @@ Pug.findAll({
 Pug.findAll({
   where: {
     age: {
-      $ne: 7 // SELECT * FROM pugs WHERE age != 7
+      [Op.ne]: 7 // SELECT * FROM pugs WHERE age != 7
     }
   }
 })
@@ -719,7 +727,7 @@ Pug.findAll({
 // $or
 Pug.findAll({
   where: {
-    $or { // SELECT * FROM pugs WHERE age = 7 OR age = 6
+    [Op.or]: { // SELECT * FROM pugs WHERE age = 7 OR age = 6
       age: 7,
       age: 6
     }
@@ -730,9 +738,9 @@ Pug.findAll({
 #### Joins/Includes (aka "Eager Loading")
 [Docs](http://docs.sequelizejs.com/manual/tutorial/models-usage.html#eager-loading)
 
-If we have two tables that are related to each other, we often want to join that data together. In raw SQL queries, our favorite tool for this is an INNER JOIN. We can do something similar in Sequelize - it just goes by the slightly different name of "eager loading". Don't get hung up on the terminology - when you see "eager loading", think "join two tables".
+If we have two tables that are associated with each other, we often want to join that data together. In raw SQL queries, our favorite tool for this is an INNER JOIN. We can do something similar in Sequelize - it just goes by the slightly different name of "eager loading". Don't get hung up on the terminology - when you see "eager loading", think "join two tables".
 
-If two tables have a relation, we can "include" information from the related table like so:
+If two tables have an association, we can "include" information from the associated table like so:
 
 ```
 const Pug = db.define('pugs', {name: Sequelize.STRING})
@@ -747,7 +755,7 @@ Pug.findAll({ // we want to find all the pugs, and include their owners
   // [{name: 'Cody', ownerId: 1, owner: {name: 'Tom'}}, ...etc]
 ```
 
-*Important!* A Model can only eagerly load a relation if a relation is defined *on* that model.
+*Important!* A Model can only eagerly load an association if the association is defined *on* that model.
 
 This means that for the above example, if we attempt to do the following:
 
@@ -761,7 +769,7 @@ Pug.belongsTo(Owner)
 Owner.findAll({include: [{model: Pug}]}) // this will error!
 ```
 
-...it will error! For us to include Pug when we query Owner, we must also establish the 'hasOne' or 'hasMany' relationship between Owners and Pugs.
+...it will error! For us to include Pug when we query Owner, we must also establish the 'hasOne' or 'hasMany' association between Owners and Pugs.
 
 Example with `hasOne`:
 
@@ -770,7 +778,7 @@ const Pug = db.define('pugs', {name: Sequelize.STRING})
 const Owner = db.define('owners', {name: Sequelize.STRING})
 
 Pug.belongsTo(Owner)
-Owner.hasOne(Pug) // 1-1 relationship
+Owner.hasOne(Pug) // 1-1 association
 
 Owner.findAll({include: [{model: Pug}]})
   .then(owners => console.log(owners)) // [{name: 'Tom', pug: {name: 'Cody', ownerId: 1}}]
@@ -791,7 +799,7 @@ Owner.findAll({include: [{model: Pug}]})
 
 Note that the difference between the two examples above is that in the `hasOne` case, the resultant owenrs have a "pug" field with the name of their (single) pug. In the `hasMany` case, the resultant owners have a "pugs" (plural!) field with an _array_ of their (possibly many) pugs!
 
-This same rule applies to many-to-many relationships!
+This same rule applies to many-to-many associations!
 
 ### Model.findOrCreate
 [Docs](http://docs.sequelizejs.com/manual/tutorial/models-usage.html#-findorcreate-search-for-a-specific-element-or-create-it-if-not-available)
