@@ -690,6 +690,7 @@ In sequelize, we need to use special properties called "operators" to do this. H
 * $lt: Less than
 * $lte: Less than or equal
 * $ne: Not equal
+* $eq: Equal
 * $or: Use or logic for multiple properties
 
 
@@ -718,10 +719,13 @@ Pug.findAll({
 ```javascript
 // $or
 Pug.findAll({
+  // SELECT * FROM pugs WHERE age = 7 OR age = 6
   where: {
-    $or { // SELECT * FROM pugs WHERE age = 7 OR age = 6
-      age: 7,
-      age: 6
+    age: {
+      $or: [
+        {$eq: 7},
+        {$eq: 6}
+      ]
     }
   }
 })
