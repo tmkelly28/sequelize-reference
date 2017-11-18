@@ -115,7 +115,7 @@ Pug.prototype.celebrateBirthday = function () {
 Pug.create({name: 'Cody'}) // let's say `birthday` defaults to today
   .then(createdPug => {
     // the instance method is invoked *on the instance*
-    cody.celebrateBirthday() // Happy birthday!
+    createdPug.celebrateBirthday() // Happy birthday!
   })
 ```
 
