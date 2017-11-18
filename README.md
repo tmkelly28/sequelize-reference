@@ -376,11 +376,11 @@ id | name | createdAt | updatedAt
 ```javascript
 pug.getOwner() // returns a promise for the pug's owner
 
-pug.setOwner(owner instance or ID) // updates the pug's ownerId to be the id of the passed-in owner, and returns a promise for the updated pug
+pug.setOwner(ownerInstanceOrID) // updates the pug's ownerId to be the id of the passed-in owner, and returns a promise for the updated pug
 
 owner.getPug() // returns a promise for the owner's pug
 
-owner.setPug(pug instance or ID) // updates the passed-in pug's ownerId to be the id of the owner, and returns a promise for the updated pug
+owner.setPug(pugInstanceOrID) // updates the passed-in pug's ownerId to be the id of the owner, and returns a promise for the updated pug
 ```
 
 3. Sequelize will allow us to "include" the pug's owner, or the owner's pug in queries.
@@ -688,25 +688,42 @@ We often want to specify comparisons like "greater than", "less than" in our `wh
 
 In sequelize, we need to use special properties called "operators" to do this. Here are some of the most common. (Note: there are of course many more operators - there's no need to memorize all of them, but be sure to read through them so that you have an idea of what you can do!)
 
-Sequelize stores these operators on the `Sequelize.Op` module:
+*Note*: Up until very recently, we used regular object properties to refer to operators. In upcoming versions of Sequelize, these will be replaced by Symbols that must be obtained from Sequelize, like so:
 
+```javascript
+// Sequelize stores these operators on the `Sequelize.Op` module:
 const Op = Sequelize.Op
 
-* [Op.gt]: Greater than
-* [Op.gte]: Greater than or equal
-* [Op.lt]: Less than
-* [Op.lte]: Less than or equal
-* [Op.ne]: Not equal
-* [Op.or]: Use or logic for multiple properties
+Pug.findAll({
+  where: {
+    age: {
+      [Op.lte]: 7 // square brackets are needed for property names that aren't plain strings
+    }
+  }
+})
+```
+
+The examples below demonstrate using operators as regular object properties, with the Symbol equivalent in an adjacent comment.
+
+Here is a list of some of the more commonly used operators, and their usage:
+
+* $gt: Greater than // soon to be replaced by [Op.gt]
+* $gte: Greater than or equal // soon to be replaced by [Op.gte]
+* $lt: Less than // soon to be replaced by [Op.lt]
+* $lte: Less than or equal // soon to be replaced by [Op.lte]
+* $ne: Not equal // soon to be replaced by [Op.ne]
+* $eq: Equal // soon to be replaced by [Op.eq]
+* $or: Use or logic for multiple properties // soon to be replaced by [Op.or]
 
 
 ```javascript
 // gt, gte, lt, lte
+
+// SELECT * FROM pugs WHERE age <= 7
 Pug.findAll({
   where: {
     age: {
-      [Op.lte]: 7 // SELECT * FROM pugs WHERE age <= 7
-      // using square brackets for computed property name
+      $lte: 7 // soon to be replaced by [Op.lte]
     }
   }
 })
@@ -714,10 +731,12 @@ Pug.findAll({
 
 ```javascript
 // $ne
+
+// SELECT * FROM pugs WHERE age != 7
 Pug.findAll({
   where: {
     age: {
-      [Op.ne]: 7 // SELECT * FROM pugs WHERE age != 7
+      $ne: 7 // soon to be replaced by [Op.ne]
     }
   }
 })
@@ -725,11 +744,15 @@ Pug.findAll({
 
 ```javascript
 // $or
+
+// SELECT * FROM pugs WHERE age = 7 OR age = 6
 Pug.findAll({
   where: {
-    [Op.or]: { // SELECT * FROM pugs WHERE age = 7 OR age = 6
-      age: 7,
-      age: 6
+    age: {
+      $or: [ // soon to be replaced by [Op.or]
+        {$eq: 7}, // soon to be replaced by [Op.eq]
+        {$eq: 6} // soon to be replaced by [Op.eq]
+      ]
     }
   }
 })
