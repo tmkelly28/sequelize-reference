@@ -1,7 +1,5 @@
 # Sequelize
 
-* <a href="#connect-to-database">Connecting to the database</a>
-
 ---
 
 ## Connect to database
