@@ -1,0 +1,24 @@
+{
+  "name": "sequelize-reference",
+  "version": "1.0.0",
+  "description": "---",
+  "main": "test.js",
+  "scripts": {
+    "test": "node sandbox"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tmkelly28/sequelize-reference.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tmkelly28/sequelize-reference/issues"
+  },
+  "homepage": "https://github.com/tmkelly28/sequelize-reference#readme",
+  "dependencies": {
+    "pg": "^7.4.0",
+    "pg-hstore": "^2.3.2",
+    "sequelize": "^4.22.11"
+  }
+}

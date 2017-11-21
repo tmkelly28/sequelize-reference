@@ -893,11 +893,18 @@ Takes two parameters: the first parameter contains the info you want to update. 
 Like `findOrCreate`, it returns a promise for an array. The first element of the array is the number of rows that were affected. The second element of the array is the affected rows themselves.
 
 ```javascript
-Pug.update({adoptedStatus: true}, {where: {age: 7}}) // update all pugs whose age is 7 to have an adoptedStatus of true
-  .spread((numberOfAffectedRows, affectedRows) => { // because we return a promise for an array, .spread is recommended
-    console.log(numberOfAffectedRows) // say we had 3 pugs with the age of 7. This will then be 3
-    console.log(affectedRows) // this will be an array of the three affected pugs
-  })
+// update all pugs whose age is 7 to have an adoptedStatus of true
+Pug.update({
+  adoptedStatus: true
+}, {
+  where: {age: 7},
+  returning: true, // needed for affectedRows to be populated
+  plain: true // makes sure that the returned instances are just plain objects
+})
+.spread((numberOfAffectedRows, affectedRows) => { // because we return a promise for an array, .spread is recommended
+  console.log(numberOfAffectedRows) // say we had 3 pugs with the age of 7. This will then be 3
+  console.log(affectedRows) // this will be an array of the three affected pugs
+})
 ```
 
 ### Model.destroy
