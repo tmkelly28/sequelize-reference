@@ -452,7 +452,7 @@ id | name | createdAt | updatedAt | ownerId
 id | name | createdAt | updatedAt
 ```
 
-2. Sequelize automatically creates three instance methods for pugs, "getOwner", "setOwner", and "createOwner". This is because we defined `Pug.belongsTo(Owner)`. Likewise, owners get a bunch of new instance methods, "getPugs", "setPugs", "createPug", "addPug", "addPugs", "removePug", "removePugs", "hasPug", "hasPugs", and "countPugs" (because we defined `Owner.hasOne(Pug)`). *Note: the difference here from one-one is that the owner's methods are now pluralized, and return promises for arrays of pugs instead of just a single pug!*
+2. Sequelize automatically creates three instance methods for pugs, "getOwner", "setOwner", and "createOwner". This is because we defined `Pug.belongsTo(Owner)`. Likewise, owners get a bunch of new instance methods, "getPugs", "setPugs", "createPug", "addPug", "addPugs", "removePug", "removePugs", "hasPug", "hasPugs", and "countPugs" (because we defined `Owner.hasMany(Pug)`). *Note: the difference here from one-one is that the owner's methods are now pluralized, and return promises for arrays of pugs instead of just a single pug!*
 
 ```javascript
 pug.getOwner() // returns a promise for the pug's owner
