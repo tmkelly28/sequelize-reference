@@ -254,7 +254,7 @@ When we perform various operations in sequelize (like updating, creating, or des
 
 This can be useful in several ways. For example:
 
-* Before creating an instance of a User, we could encrypt that user's plaintext password, so that what gets saved is the encrypted version
+* Before creating an instance of a User, we could hash that user's plaintext password, so that what gets saved is the hashed version
 * Before destroying an instance of a TodoList, we could also destroy all Todos that are associated with that TodoList.
 
 We define hooks on the model, but they are executed against instances when those instances pass through those lifecycle events.
@@ -274,7 +274,7 @@ const User = db.define('users', {
 // so we can use this to change something about the instance before it gets saved.
 
 User.beforeCreate((userInstance, optionsObject) => {
-  userInstance.password = encrypt(userInstance.password)
+  userInstance.password = hash(userInstance.password)
 })
 
 // This lifecycle hook would get called after calling something like:
@@ -282,7 +282,7 @@ User.beforeCreate((userInstance, optionsObject) => {
 // and it would run before the new user is saved in the database.
 // If we were to inspect the newly created user, we would see that
 // the user.password wouldn't be '123', but it would be another string
-// representing the encrypted '123'
+// representing the hashed '123'
 ```
 
 ```javascript
@@ -338,7 +338,7 @@ These relations can be combined to establish *one-one*, *one-many* and *many-man
 
 * `one-many`
   * `A.belongsTo(B)`
-  * `B.hasMany(B)`
+  * `B.hasMany(A)`
 
 * `many-many`
   * `A.belongsToMany(B, {through: 'AB'})`
