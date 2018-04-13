@@ -31,7 +31,7 @@ const Pug = db.define('pugs', {
     name: Sequelize.TEXT // for longer strings
   },
   age: {
-    type: Sequelize: INTEGER
+    type: Sequelize.INTEGER
   },
   birthday: {
     type: Sequelize.DATE
@@ -539,7 +539,7 @@ By establishing the relation above, the following *four* things happen:
 
 *friendship*
 ```
-createdAt | updatedAt | pugId | pugFriendId
+createdAt | updatedAt | pugId | friendId
 ```
 
 No changes occur to the `pug` or `friend` tables!
