@@ -860,7 +860,7 @@ With pure JavaScript, we can use array destructuring to do the same thing:
 
 ```javascript
 Pug.findOrCreate({where: {name: 'Cody'}})
-  .spread(([instance, wasCreated]) => {/* ...etc */})
+  .then(([instance, wasCreated]) => {/* ...etc */})
 ```
 For other examples of this pattern: http://es6-features.org/#ParameterContextMatching
 
