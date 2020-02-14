@@ -19,6 +19,6 @@
   "dependencies": {
     "pg": "^7.4.0",
     "pg-hstore": "^2.3.2",
-    "sequelize": "^4.22.11"
+    "sequelize": "^5.15.1"
   }
 }
